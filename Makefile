@@ -1,7 +1,10 @@
-CC=g++
+CC=g++ -ggdb
 
 .PHONY: all
-all: val_test01_solved
+all: val_test01_solved val_test02_solved
 
 val_test01_solved: val_test01_solved.cpp
 	$(CC) -o val_test01_solved val_test01_solved.cpp
+
+val_test02_solved: val_test02_solved.cpp
+	$(CC) -o val_test02_solved val_test02_solved.cpp

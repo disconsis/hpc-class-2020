@@ -99,6 +99,15 @@ void junk_data ( )
 //
 //  Print X.
 //
+
+  // initialize memory before using
+  x[2] = 2;
+  x[5] = 8234;
+  x[6] = 823;
+  x[7] = 9292;
+  x[8] = 111;
+  x[9] = 29234;
+
   for ( i = 0; i < 10; i++ )
   {
     cout << "  " << i << "  " << x[i] << "\n";
