@@ -9,13 +9,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * 1. nthreads and tid were shared which created unexpected results.
+ *    making them private solved it.
+ *
+ * 2. total should have been initialized outside the parallel region
+ *    since this is a reduction on total, we use that clause to prevent
+ *    race conditions
+ */
+
 int main (int argc, char *argv[]) 
 {
 int nthreads, i, tid;
-float total;
+float total = 0;
 
 /*** Spawn parallel region ***/
-#pragma omp parallel 
+#pragma omp parallel private(nthreads, tid)
   {
   /* Obtain thread number */
   tid = omp_get_thread_num();
