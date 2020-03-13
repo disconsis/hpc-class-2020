@@ -25,7 +25,23 @@ void MMult0(long m, long n, long k, double *a, double *b, double *c) {
 }
 
 void MMult1(long m, long n, long k, double *a, double *b, double *c) {
-  // TODO: See instructions below
+  double sum;
+
+  for (long z_block_start = 0; z_block_start < m; z_block_start += BLOCK_SIZE) {
+    for (long y_block_start = 0; y_block_start < k; y_block_start+=BLOCK_SIZE) {
+      for (long x = 0; x < n; x++) {
+        long z_block_end = z_block_start + BLOCK_SIZE;
+        for (long z = z_block_start; z < z_block_end; z++) {
+          sum = 0;
+          long y_block_end = y_block_start + BLOCK_SIZE;
+          for (long y = y_block_start; y < y_block_end; y++) {
+            sum += b[k * x + y] * a[m * y + z];
+          }
+          c[m * x + z] += sum;
+        }
+      }
+    }
+  }
 }
 
 int main(int argc, char** argv) {
@@ -58,9 +74,12 @@ int main(int argc, char** argv) {
       MMult1(m, n, k, a, b, c);
     }
     double time = t.toc();
-    double flops = 0; // TODO: calculate from m, n, k, NREPEATS, time
-    double bandwidth = 0; // TODO: calculate from m, n, k, NREPEATS, time
-    printf("%10d %10f %10f %10f", p, time, flops, bandwidth);
+
+    double multiplier = (m * n * k * NREPEATS * 1e-9) / time;
+
+    double flops = 2 * multiplier;
+    double bandwidth = 2 * (1 + 1/BLOCK_SIZE) * sizeof(double) * multiplier;
+    printf("%10d    %10f %10f %10f", p, time, flops, bandwidth);
 
     double max_err = 0;
     for (long i = 0; i < m*n; i++) max_err = std::max(max_err, fabs(c[i] - c_ref[i]));
@@ -92,7 +111,7 @@ int main(int argc, char** argv) {
 //
 // * Experiment with different values for BLOCK_SIZE (use multiples of 4) and
 // measure performance.  What is the optimal value for BLOCK_SIZE?
-//
+// -> 16
 //
 // * Now parallelize your matrix-matrix multiplication code using OpenMP.
 //
