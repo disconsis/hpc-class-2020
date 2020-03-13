@@ -10,13 +10,25 @@
 #include <stdlib.h>
 #define N 1048
 
+/** Solution
+ *
+ * OpemMP tries to copy each private variable for each thread.
+ * Since a statically allocated array cannot be created like this,
+ * the application segfaults.
+ * We just remove "a" from the list of private variables to fix this.
+ *
+ * If we want each thread to work on its own section then we have to declare
+ * a larger array and have them work on different regions of it, or we can
+ * just use "#pragma omp for"
+ */
+
 int main (int argc, char *argv[]) 
 {
 int nthreads, tid, i, j;
 double a[N][N];
 
 /* Fork a team of threads with explicit variable scoping */
-#pragma omp parallel shared(nthreads) private(i,j,tid,a)
+#pragma omp parallel shared(nthreads) private(i,j,tid)
   {
 
   /* Obtain/print thread info */
@@ -28,7 +40,7 @@ double a[N][N];
     }
   printf("Thread %d starting...\n", tid);
 
-  /* Each thread works on its own private copy of the array */
+  #pragma omp for
   for (i=0; i<N; i++)
     for (j=0; j<N; j++)
       a[i][j] = tid + i + j;
