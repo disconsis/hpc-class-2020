@@ -10,6 +10,13 @@
 #include <stdlib.h>
 #define N     50
 
+/** Solution
+ * Each thread needs to pass through the same number of barriers.
+ * So due to the extra barrier in the function that only two threads
+ * go through, these threads block on the second barrier since every
+ * other thread has crossed it already.
+ */
+
 int main (int argc, char *argv[]) 
 {
 int i, nthreads, tid, section;
@@ -83,7 +90,6 @@ void print_results(float array[N], int tid, int section)
     printf("\n");
   } /*** end of critical ***/
 
-  #pragma omp barrier
   printf("Thread %d done and synchronized.\n", tid); 
 
 }
