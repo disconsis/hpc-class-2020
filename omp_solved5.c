@@ -13,6 +13,13 @@
 #define PI 3.1415926535
 #define DELTA .01415926535
 
+/** Solution
+ *
+ * Locks should be acquired in the same order across all threads,
+ * otherwise it can cause deadlocks.
+ * The simple solution here is to make the order of acquiring locks the same.
+ */
+
 int main (int argc, char *argv[]) 
 {
 int nthreads, tid, i;
@@ -56,15 +63,15 @@ omp_init_lock(&lockb);
     #pragma omp section
       {
       printf("Thread %d initializing b[]\n",tid);
+      omp_set_lock(&locka);
       omp_set_lock(&lockb);
       for (i=0; i<N; i++)
         b[i] = i * PI;
-      omp_set_lock(&locka);
       printf("Thread %d adding b[] to a[]\n",tid);
       for (i=0; i<N; i++)
         a[i] += b[i];
-      omp_unset_lock(&locka);
       omp_unset_lock(&lockb);
+      omp_unset_lock(&locka);
       }
     }  /* end of sections */
   }  /* end of parallel region */
