@@ -2,12 +2,15 @@
 #include <cstdio>
 #include <iostream>
 #include <utility>
+#include "utils.h"
 using namespace std;
 
-#define N 4
-#define MAX_ITER 5000
-#define MIN_RESIDUAL_FRAC 1e6
+#define N 10000
+#define MAX_ITER 10
+#define THREADS 16
 
+double u_arr[N + 2][N + 2] = {0};
+double u_new_arr[N + 2][N + 2] = {0};
 
 inline double square(double x) { return x * x; };
 double h_sq = square(1.00 / (N + 1));
@@ -16,6 +19,7 @@ inline void gauss_update(double (*u_old)[N + 2],
                          double (*u_new)[N + 2],
                          long i_start,
                          long j_start) {
+  #pragma omp parallel for num_threads(THREADS)
   for (auto i = i_start; i <= N; i += 2) {
     for (auto j = j_start; j <= N; j += 2) {
       u_new[i][j] = (h_sq
@@ -27,9 +31,7 @@ inline void gauss_update(double (*u_old)[N + 2],
   }
 }
 
-void gauss(double u_arr[N + 2][N + 2]) {
-  double u_new_arr[N + 2][N + 2] = {0};
-
+void gauss() {
   double(*u_old)[N + 2] = u_arr;
   double(*u_new)[N + 2] = u_new_arr;
 
@@ -50,8 +52,20 @@ void gauss(double u_arr[N + 2][N + 2]) {
 }
 
 int main() {
-  double u[N + 2][N + 2] = {0};
-  gauss(u);
+#ifdef _OPENMP
+  cout << "OpenMP enabled\n";
+  cout << "Threads: " << THREADS << "\n";
+#else
+  cout << "OpenMP disabled\n";
+#endif
+  cout << "Size: " << N << endl;
+
+  Timer t;
+  t.tic();
+  gauss();
+  double time = t.toc();
+
+  cout << "Time: " << time << endl;
 
   return 0;
 }
