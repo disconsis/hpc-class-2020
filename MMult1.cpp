@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <omp.h>
 #include "utils.h"
 
 #define BLOCK_SIZE 16
@@ -29,6 +28,7 @@ void MMult1(long m, long n, long k, double *a, double *b, double *c) {
 
   for (long z_block_start = 0; z_block_start < m; z_block_start += BLOCK_SIZE) {
     for (long y_block_start = 0; y_block_start < k; y_block_start+=BLOCK_SIZE) {
+      #pragma omp parallel for
       for (long x = 0; x < n; x++) {
         long z_block_end = z_block_start + BLOCK_SIZE;
         for (long z = z_block_start; z < z_block_end; z++) {
