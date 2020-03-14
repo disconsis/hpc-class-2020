@@ -28,7 +28,7 @@ MMult1: MMult1.cpp
 	g++ -fopenmp -O3 -march=native MMult1.cpp -o MMult1
 
 jacobi2D-omp: jacobi2D-omp.cpp
-	g++ -o jacobi2D-omp -ggdb -fopenmp -march=native jacobi2D-omp.cpp # -O2
+	g++ -o jacobi2D-omp -O3 -fopenmp -march=native jacobi2D-omp.cpp
 
 gs2D-omp: gs2D-omp.cpp
-	g++ -o gs2D-omp -ggdb -fopenmp -march=native gs2D-omp.cpp # -O2
+	g++ -o gs2D-omp -O3 -fopenmp -march=native gs2D-omp.cpp
