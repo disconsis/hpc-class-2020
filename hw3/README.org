@@ -1,0 +1,18 @@
+#+OPTIONS: toc:nil
+* Setup
+| Num processors | 8                                        |
+| Architecture   | x86_64 (supports AVX)                    |
+
+* Q3. Parallel scan
+** Timings
+| Threads |  Time(s) |
+|---------+----------|
+|       1 | 0.388143 |
+|       2 | 0.334037 |
+|       4 | 0.266386 |
+|       6 | 0.255912 |
+|       8 | 0.261404 |
+|      16 | 0.277655 |
+|      32 | 0.261039 |
+
+For comparison, time taken by =scan_seq= is =0.390759s=.
