@@ -1,0 +1,4 @@
+#+TITLE: High Performance Computing, Spring 2020
+#+AUTHOR: Ketan Kanishka, kk4168@nyu.edu
+
+Assignments can be found in their own directories with timings and non-code answers in a =README.org= file in each folder.
