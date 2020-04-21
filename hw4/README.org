@@ -1,0 +1,20 @@
+#+TITLE: Assignment 4
+#+AUTHOR: Ketan Kanishka (kk4168)
+
+* Q1. Matrix multiplication
+
+All programs I tried on cuda4 failed to terminate (including the sample programs given in class).
+The CPU-based code in the programs ran, but the GPU-based part didn't.
+
+| Server | GPU Bandwidth    |
+|--------+------------------|
+| Cuda1  | 0.90 GB/s        |
+| Cuda2  | 2.61 GB/s        |
+| Cuda3  | 3.30 GB/s        |
+| Cuda4  | <not functional> |
+| Cuda5  | 0.67 GB/s        |
+
+A speedup of 25.12 was achieved over the OpemMP-based CPU code.
+
+* Q2. Jacobi method (2D)
+A speedup of 144.23 was achieved over the OpemMP-based CPU code.
