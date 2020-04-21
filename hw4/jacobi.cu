@@ -82,14 +82,8 @@ int main() {
   cudaMalloc(&U_new, size);
 
   double* U_answer = (double*) malloc(size);
-  // cudaMallocManaged(&U_old, size);
-  // cudaMallocManaged(&U_new, size);
   cudaMemset(U_old, 0, size);
   cudaMemset(U_new, 0, size);
-  // for (size_t i = 0; i < num_elems; i++) {
-  //   U_old[i] = 0;
-  //   U_new[i] = 0;
-  // }
 
   double start_time = omp_get_wtime();
   jacobi<<<N/BLOCK_SIZE, BLOCK_SIZE>>>(U_old, U_new, N);
@@ -108,6 +102,10 @@ int main() {
   }
   printf("Error: %f\n", err * 1e-9);
 
+  // free
+  cudaFree(U_old);
+  cudaFree(U_new);
+  free(U_answer);
 
   return 0;
 }
