@@ -73,10 +73,9 @@ void matrix_product_ref(double *C, double *A, double *B, size_t N) {
 void test_matrix_product() {
     size_t N = (1UL << 10);
     size_t size = N * N * sizeof(double);
-    double *A, *B, *C;
-    cudaMallocManaged(&A, N * N * sizeof(double));
-    cudaMallocManaged(&B, N * N * sizeof(double));
-    cudaMallocManaged(&C, N * N * sizeof(double));
+    double* A = (double*) malloc(size);
+    double* B = (double*) malloc(size);
+    double* C = (double*) malloc(size);
     double* C_ref = (double*) malloc(size);
 
     #pragma omp parallel for schedule(static)
@@ -94,11 +93,20 @@ void test_matrix_product() {
     double end_time_ref = omp_get_wtime();
     printf("--\n");
 
+
+    double *Ad, *Bd, *Cd;
+    cudaMalloc(&Ad, size);
+    cudaMalloc(&Bd, size);
+    cudaMalloc(&Cd, size);
+
     dim3 gridSize(N/BLOCK_SIZE_RT, N/BLOCK_SIZE_RT);
     dim3 blockSize(BLOCK_SIZE_RT, BLOCK_SIZE_RT);
 
     double start_time = omp_get_wtime();
-    matrix_product<<<gridSize, blockSize>>>(C,A,B,N);
+    cudaMemcpyAsync(Ad, A, size, cudaMemcpyHostToDevice);
+    cudaMemcpyAsync(Bd, B, size, cudaMemcpyHostToDevice);
+    matrix_product<<<gridSize, blockSize>>>(Cd,Ad,Bd,N);
+    cudaMemcpyAsync(C, Cd, size, cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
     double end_time = omp_get_wtime();
 
@@ -106,6 +114,7 @@ void test_matrix_product() {
     double gpu_time = end_time - start_time;
     double ref_time = end_time_ref - start_time_ref;
     printf("Time: %f = Time_ref/%f\n", gpu_time, (ref_time / gpu_time));
+    printf("GPU bandwidth = %f GB/s\n", (3.0 * size) / gpu_time / 1e9);
 
 
     double err = 0;
