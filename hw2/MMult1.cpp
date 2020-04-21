@@ -23,29 +23,47 @@ void MMult0(long m, long n, long k, double *a, double *b, double *c) {
   }
 }
 
-void MMult1(long m, long n, long k, double *a, double *b, double *c) {
-  double sum;
-
-  for (long z_block_start = 0; z_block_start < m; z_block_start += BLOCK_SIZE) {
-    for (long y_block_start = 0; y_block_start < k; y_block_start+=BLOCK_SIZE) {
-      #pragma omp parallel for
-      for (long x = 0; x < n; x++) {
-        long z_block_end = z_block_start + BLOCK_SIZE;
-        for (long z = z_block_start; z < z_block_end; z++) {
-          sum = 0;
-          long y_block_end = y_block_start + BLOCK_SIZE;
-          for (long y = y_block_start; y < y_block_end; y++) {
-            sum += b[k * x + y] * a[m * y + z];
-          }
-          c[m * x + z] += sum;
-        }
+void MMult0_modded(long m, long n, long k, double *a, double *b, double *c) {
+  for (long j = 0; j < n; j++) {
+    for (long p = 0; p < k; p++) {
+      for (long i = 0; i < m; i++) {
+        double A_ip = a[i + p * m];
+        double B_pj = b[p + j * k];
+        double C_ij = 0;
+        C_ij = C_ij + A_ip * B_pj;
+        #pragma omp critical
+        c[i + j * m] += C_ij;
       }
     }
   }
 }
 
+void MMult1(long m, long n, long k, double *a, double *b, double *c) {
+  double sum;
+
+  for (long i = 0; i < m; i += BLOCK_SIZE) {
+    for (long j = 0; j < n; j += BLOCK_SIZE) {
+
+      // load c(i,j)
+      double* c_aux = c + i + j * m;
+
+      #pragma omp parallel for
+      for (long p = 0; p < k; p += BLOCK_SIZE) {
+        // load a(i,p) and b(p,j)
+        double* a_aux = a + i + p*m;
+        double* b_aux = b + p + j*k;
+
+        // multiply
+        MMult0_modded(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, a_aux, b_aux, c_aux);
+      }
+      printf("parallel for done once: %d\n", (i/BLOCK_SIZE + 1) * (j/BLOCK_SIZE + 1));
+
+    }
+  }
+}
+
 int main(int argc, char** argv) {
-  const long PFIRST = BLOCK_SIZE;
+  const long PFIRST = 25 * BLOCK_SIZE;
   const long PLAST = 2000;
   const long PINC = std::max(50/BLOCK_SIZE,1) * BLOCK_SIZE; // multiple of BLOCK_SIZE
 
@@ -64,9 +82,12 @@ int main(int argc, char** argv) {
     for (long i = 0; i < m*n; i++) c_ref[i] = 0;
     for (long i = 0; i < m*n; i++) c[i] = 0;
 
+    Timer t_ref;
+    t_ref.tic();
     for (long rep = 0; rep < NREPEATS; rep++) { // Compute reference solution
       MMult0(m, n, k, a, b, c_ref);
     }
+    double time_ref = t_ref.toc();
 
     Timer t;
     t.tic();
@@ -79,7 +100,7 @@ int main(int argc, char** argv) {
 
     double flops = 2 * multiplier;
     double bandwidth = 2 * (1 + 1/BLOCK_SIZE) * sizeof(double) * multiplier;
-    printf("%10d    %10f %10f %10f", p, time, flops, bandwidth);
+    printf("%10d    %10f %10f %10f", p, time_ref / time, flops, bandwidth);
 
     double max_err = 0;
     for (long i = 0; i < m*n; i++) max_err = std::max(max_err, fabs(c[i] - c_ref[i]));
